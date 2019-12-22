@@ -73,7 +73,7 @@ passport.use(
             }
             console.log('user found & authenticated');
             return done(null, user);
-          });
+          });0
         });
       } catch (err) {
         done(err);
