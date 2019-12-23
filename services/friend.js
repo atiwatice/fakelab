@@ -29,14 +29,28 @@ module.exports = (app, db) => {
     passport.authenticate("jwt", { session: false }),
     async function(req, res) {
       // Lab 2
-      db.friend
-        .findAll({ where: { status: "request", request_to_id: req.user.id } })
-        .then(result => {
-          res.status(201).send(result);
-        })
-        .catch(err => {
-          res.status(400).send({ message: err.message });
-        });
+      // db.friend
+      //   .findAll({ where: { status: "request", request_to_id: req.user.id } })
+      //   .then(result => {
+      //     res.status(201).send(result);
+      //   })
+      //   .catch(err => {
+      //     res.status(400).send({ message: err.message });
+      //   });
+
+      const requestList = await db.friend.findAll({
+        where: { request_to_id: req.user.id, status: "request" },
+        attribute: [["request_from_id", "id"]]
+      });
+
+      const requestListIds = requestList.map(
+        request => request.request_from_id
+      );
+      const requestuser = await db.user.findAll({
+        where: { id: { [Op.in]: requestListIds } },
+        attribute: ["id", "name", "profile_img_url"]
+      });
+      res.send(requestuser);
     }
   );
 
@@ -114,16 +128,34 @@ module.exports = (app, db) => {
     passport.authenticate("jwt", { session: false }),
     async function(req, res) {
       // Lab 6
-      db.friend
-        .findAll({
-          where: { request_to_id: req.user.id, status: "friend" }
-        })
-        .then(result => {
-          res.status(201).send(result);
-        })
-        .catch(err => {
-          res.status(400).send({ message: err.message });
-        });
+      // db.friend
+      //   .findAll({
+      //     where: { request_to_id: req.user.id, status: "friend" }
+      //   })
+      //   .then(result => {
+      //     res.status(201).send(result);
+      //   })
+      //   .catch(err => {
+      //     res.status(400).send({ message: err.message });
+      //   });
+      const requestFromIds = await db.friend.findAll({
+        where: { status: "friend", request_to_id: req.user.id },
+        attributes: [["request_from_id", "id"]]
+      });
+      const requestToIds = await db.friend.findAll({
+        where: { status: "friend", request_from_id: req.user.id },
+        attributes: [["request_to_id", "id"]]
+      });
+
+      const requestFromIdsArray = requestFromIds.map(request => request.id);
+      const requestToIdsArray = requestToIds.map(request => request.id);
+      const friendUser = await db.user.findAll({
+        where: {
+          id: { [Op.in]: requestFromIdsArray.concat(requestToIdsArray) }
+        },
+        attributes: ["id", "name", "profile_img_url"]
+      });
+      res.status(200).send(friendUser);
     }
   );
 };

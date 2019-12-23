@@ -17,7 +17,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 require('./config/passport/passport')
 
-db.sequelize.sync({ force: false }).then(() => {
+db.sequelize.sync({ alter: false }).then(() => {
 
   userService(app, db);
   postService(app, db)

@@ -49,6 +49,8 @@ module.exports = (app, db) => {
       }
     })(req, res, next);
   });
+
+  
   app.post("/loginUser", (req, res, next) => {
     passport.authenticate("login", (err, users, info) => {
       if (err) {
